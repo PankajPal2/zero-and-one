@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            font-weight: 400; /* Normal weight for most text */
+            font-style: normal; /* Normal style for most text */
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #ffffff;
+            font-weight: 700; /* Bold text for headings */
+            font-style: italic; /* Italic style for headings */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            background-color: #007bff; /* Blue color for header */
+            color: #ffffff;
+            padding: 20px;
+            font-size: 1.5rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            text-align: center;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-label {
+            font-weight: 600; /* Slightly bolder label text */
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+            margin-bottom: 15px; /* Add margin between form fields */
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 10px 20px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .list-group-item {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .list-group-item:nth-child(even) {
+            background-color: #e9ecef;
+        }
+
+        #expenseChart {
+            max-width: 700px;
+            max-height: 400px;
+            margin: 20px auto;
+            background-color: #ffffff; /* White background for the chart */
+            padding: 20px;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-footer {
+            background-color: #ffffff;
+            border-top: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .footer-text {
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>Fundtrack</h1>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_expense') }}">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <input type="text" class="form-control" id="category" name="category" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" name="description">
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Expense</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-5">
+            <div class="card-header">
+                <h2>Expenses</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    Categories
+                    <li class="list-group-item">
+                        Your Expenses
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mt-5">
+            <div class="card-header">
+                <h2>Expense Breakdown</h2>
+            </div>
+            <div class="card-body">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <p class="footer-text">Fundtrack &copy; 2024</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('expenseChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Category 1', 'Category 2', 'Category 3'], // dynamically populate categories
+                datasets: [{
+                    label: 'Spending by Category',
+                    data: [10, 20, 30], // dynamically populate data
+                    backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+</html>
